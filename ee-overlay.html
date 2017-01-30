@@ -1,0 +1,156 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!-- Paper -->
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+
+<!-- Iron -->
+<link rel="import" href="../iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
+
+<!--
+`ee-full-overlay`
+Full screen overlay
+
+@demo demo/index.html
+-->
+
+<dom-module id="ee-overlay">
+  <template>
+    <style>
+      :host {
+        --background-color-light: rgba(248, 248, 248, 0.8);
+        --background-color: rgba(255,255,255,1);
+        --reverse-background-color: rgba(0,0,0,1);
+        --min-height: 0vh;
+        background-color: var(--background-color-light);
+        position: fixed;
+        height: 100vh;
+        width: 100vw;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        overflow: scroll;
+        z-index: +1;
+        border: 1px solid #e8e8e8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+      }
+
+      :host[force-full-height] {
+        padding-top: 10vh;
+        --min-height: 90vh;
+      }
+
+      :host[force-full-height] > .outer-container {
+        position: absolute;;
+        top: 10vh;
+        height: auto !important;
+      }
+
+      :host[force-full-width] > .outer-container {
+        width: 80vw;
+        left: 10vw;
+        right: 10vw;
+      }
+
+      .outer-container {
+        max-width: 80vw;
+        background-color: var(--background-color);
+        color: white;
+        margin: 0 auto;
+        @apply(--overlay-outer-container);
+      }
+
+      .inner-container {
+        /*margin: 2vw;*/
+        /*margin-bottom: 10vh;*/
+        padding: 24px;
+        min-height: var(--min-height);
+        color: var(--reverse-background-color);
+        @apply(--overlay-inner-container);
+      }
+
+      .close-button {
+        position: fixed;
+        right: 24px;
+        top: 24px;
+        color: var(--reverse-background-color);
+      }
+    </style>
+    <paper-icon-button class="close-button" icon="close" on-tap="close"></paper-icon-button>
+    <div id="outer" class="outer-container">
+      <div id="inner" class="inner-container">
+        <slot></slot>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'ee-overlay',
+
+      behaviors: [
+        Polymer.IronA11yKeysBehavior
+      ],
+
+      observers: [
+        '_setOpenState(opened)'
+      ],
+
+      properties: {
+        keyEventTarget: {
+          type: Object,
+          value: function() {
+            return document.body;
+          }
+        },
+
+        opened: {
+          type: Boolean,
+          value: true,
+        },
+      },
+
+      keyBindings: {
+        'esc:keyup': '_escPressed'
+      },
+
+      attached() {
+        this._resize()
+      },
+
+      _escPressed: function() {
+        this.close();
+      },
+
+      _setOpenState: function(opened) {
+        if (opened) {
+          this.style.display = 'flex';
+          this.open()
+        } else {
+          this.style.display = 'none';
+          this.close()
+        }
+      },
+
+      _resize() {
+        this.$.outer.style.height = this.$.inner.offsetHeight + 'px';
+        // (window.screen.height/2 - h/2).toString() + 'px';
+      },
+
+      close: function() {
+        this.blur();
+        this.opened = false;
+      },
+
+      open: function() {
+        this.focus();
+        this.opened = true;
+      }
+
+    });
+  </script>
+</dom-module>
